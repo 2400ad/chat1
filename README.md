@@ -1,70 +1,86 @@
-# Getting Started with Create React App
+# Chat Viewer 애플리케이션
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Firebase를 사용한 채팅 뷰어 애플리케이션입니다. 이 애플리케이션은 Firebase Firestore와 Realtime Database에 저장된 채팅 세션과 메시지를 표시합니다.
 
-## Available Scripts
+## 주요 기능
 
-In the project directory, you can run:
+- 채팅 세션 목록 표시
+- 채팅 메시지 실시간 표시
+- 서버리스 함수를 통한 Firebase 접근 (Firebase 차단 환경 대응)
 
-### `npm start`
+## 설치 및 실행
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 로컬 개발 환경
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```bash
+# 의존성 설치
+npm install
 
-### `npm test`
+# 개발 서버 실행 (Netlify Functions 포함)
+npm run dev
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# 일반 React 개발 서버만 실행 (Functions 없음)
+npm start
+```
 
-### `npm run build`
+### 배포
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+# 빌드
+npm run build
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# Netlify 배포
+netlify deploy --prod
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Firebase 차단 환경 대응 방법
 
-### `npm run eject`
+이 애플리케이션은 Firebase가 차단된 환경에서도 작동할 수 있도록 서버리스 함수(Netlify Functions)를 사용합니다:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+1. 클라이언트(브라우저)는 Firebase에 직접 접근하지 않고 Netlify Functions에 요청합니다.
+2. Netlify Functions는 서버 측에서 Firebase Admin SDK를 사용하여 데이터를 가져옵니다.
+3. 가져온 데이터를 클라이언트에 반환합니다.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+이 방식을 사용하면 클라이언트 측에서 Firebase에 직접 접근할 필요가 없으므로, Firebase가 차단된 환경에서도 애플리케이션이 정상적으로 작동합니다.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Firebase Admin SDK 설정
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+서버리스 함수에서 Firebase Admin SDK를 사용하기 위해서는 서비스 계정 키가 필요합니다. 자세한 설정 방법은 [FIREBASE_ADMIN_SETUP.md](./FIREBASE_ADMIN_SETUP.md) 파일을 참조하세요.
 
-## Learn More
+## 기술 스택
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- React
+- Firebase (Firestore, Realtime Database)
+- Firebase Admin SDK
+- Netlify Functions (서버리스)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 폴더 구조
 
-### Code Splitting
+```
+chat-viewer/
+├── netlify/
+│   └── functions/           # 서버리스 함수
+│       ├── getChatSessions.js
+│       └── getMessages.js
+├── public/                  # 정적 파일
+├── src/
+│   ├── components/          # React 컴포넌트
+│   ├── firebase/            # Firebase 관련 코드
+│   ├── styles/              # CSS 파일
+│   ├── App.js               # 메인 App 컴포넌트
+│   └── index.js             # 진입점
+├── .env                     # 환경 변수 (로컬 개발용)
+├── netlify.toml             # Netlify 설정
+└── package.json             # 의존성 및 스크립트
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 문제 해결
 
-### Analyzing the Bundle Size
+- **채팅 세션이 표시되지 않는 경우**: 
+  1. 브라우저 콘솔에서 오류 메시지 확인
+  2. 네트워크 탭에서 API 요청 확인
+  3. Netlify Functions 로그 확인 (`netlify functions:invoke getChatSessions`)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- **Firebase 접근 오류**: 
+  1. Firebase 서비스 계정 키 설정 확인
+  2. Netlify 환경 변수 설정 확인

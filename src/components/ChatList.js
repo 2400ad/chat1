@@ -7,36 +7,63 @@ const ChatList = ({ onSelectChat, selectedChatId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const loadChatSessions = async () => {
-      try {
-        setLoading(true);
-        const sessions = await getChatSessions();
-        setChatSessions(sessions);
-        setError(null);
-      } catch (err) {
-        console.error('채팅 세션 로딩 오류:', err);
-        setError('채팅 세션을 불러오는 중 오류가 발생했습니다.');
-      } finally {
-        setLoading(false);
+  // 타임스탬프를 포맷팅하는 함수
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '날짜 없음';
+    
+    try {
+      // Firestore 타임스탬프 객체인 경우
+      if (timestamp.seconds) {
+        return new Date(timestamp.seconds * 1000).toLocaleString();
       }
-    };
+      // Date 객체인 경우
+      else if (timestamp instanceof Date) {
+        return timestamp.toLocaleString();
+      }
+      // 숫자(밀리초)인 경우
+      else if (typeof timestamp === 'number') {
+        return new Date(timestamp).toLocaleString();
+      }
+      // 문자열인 경우
+      else if (typeof timestamp === 'string') {
+        return new Date(timestamp).toLocaleString();
+      }
+      // 기타 경우
+      return '유효하지 않은 날짜';
+    } catch (error) {
+      console.error('날짜 포맷팅 오류:', error);
+      return '날짜 오류';
+    }
+  };
 
-    loadChatSessions();
-  }, []);
-
-  const handleRefresh = async () => {
+  const loadChatSessions = async () => {
     try {
       setLoading(true);
       const sessions = await getChatSessions();
       setChatSessions(sessions);
       setError(null);
     } catch (err) {
-      console.error('채팅 세션 새로고침 오류:', err);
-      setError('채팅 세션을 새로고침하는 중 오류가 발생했습니다.');
+      console.error('채팅 세션 로딩 오류:', err);
+      setError('채팅 세션을 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    loadChatSessions();
+    
+    // 30초마다 자동 새로고침
+    const refreshInterval = setInterval(() => {
+      console.log('채팅 세션 자동 새로고침');
+      loadChatSessions();
+    }, 30000);
+    
+    return () => clearInterval(refreshInterval);
+  }, []);
+
+  const handleRefresh = async () => {
+    await loadChatSessions();
   };
 
   if (loading) {
@@ -66,7 +93,10 @@ const ChatList = ({ onSelectChat, selectedChatId }) => {
       </div>
       
       {chatSessions.length === 0 ? (
-        <p className="no-chats">채팅 세션이 없습니다.</p>
+        <div className="no-chats">
+          <p>채팅 세션이 없습니다.</p>
+          <p className="hint">로컬 chat-app에서 채팅을 시작하면 여기에 표시됩니다.</p>
+        </div>
       ) : (
         <ul className="sessions-list">
           {chatSessions.map((session) => (
@@ -76,9 +106,9 @@ const ChatList = ({ onSelectChat, selectedChatId }) => {
               onClick={() => onSelectChat(session.id)}
             >
               <div className="session-info">
-                <span className="session-id">{session.id}</span>
+                <span className="session-title">{session.title || '새 채팅'}</span>
                 <span className="session-date">
-                  {session.createdAt ? new Date(session.createdAt.seconds * 1000).toLocaleString() : '날짜 없음'}
+                  {formatTimestamp(session.createdAt)}
                 </span>
               </div>
             </li>

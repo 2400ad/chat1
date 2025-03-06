@@ -1,7 +1,7 @@
 // Firebase 설정 파일
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getDatabase } from "firebase/database";
+import { getDatabase, ref, onValue } from "firebase/database";
 
 // Firebase 구성 정보
 const firebaseConfig = {
@@ -27,8 +27,31 @@ console.log("환경 변수 확인:", {
 
 // Firebase 초기화
 const app = initializeApp(firebaseConfig);
+
+// Firestore 설정
 const firestore = getFirestore(app);
+
+// Realtime Database 설정
 const database = getDatabase(app);
+
+// 네트워크 상태 모니터링 및 오류 처리
+const handleConnectionError = (error) => {
+  console.error("Firebase 연결 오류:", error);
+};
+
+// 연결 상태 모니터링 (Realtime Database)
+try {
+  const connectedRef = ref(database, '.info/connected');
+  onValue(connectedRef, (snap) => {
+    if (snap.val() === true) {
+      console.log("Firebase Realtime Database에 연결됨");
+    } else {
+      console.log("Firebase Realtime Database에 연결되지 않음");
+    }
+  }, handleConnectionError);
+} catch (error) {
+  console.error("연결 모니터링 설정 오류:", error);
+}
 
 console.log("Firebase 초기화 완료");
 
